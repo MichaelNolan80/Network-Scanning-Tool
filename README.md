@@ -60,10 +60,10 @@ I built this incrementally, solving real problems as they came up. Each stage fo
 
 | Stage | What I built |
 |---|---|
-| `stage-1-foundation/` | Project scaffold, UI module, shared utilities |
-| `stage-2-scanning/` | Host discovery, TCP + OS scanning, port index files |
-| `stage-3-vulnerability/` | NVD API integration, CVE reporting |
-| `stage-4-bruteforce/` | Hydra brute-force, credential reporting, host summary integration |
+| [Stage-1-foundation](Bash-Tool/Stage-1-foundation/readme.md) | Project scaffold, UI module, shared utilities |
+| [Stage-2-scanning](Bash-Tool/Stage-2-Network-Scanning/readme.me) | Host discovery, TCP + OS scanning, port index files |
+| [Stage-3-vulnerability](Bash-Tool/Stage-3-Vulnerability-Lookup) | NVD API integration, CVE reporting |
+| [Stage-4-bruteforce](Bash-Tool/Stage-4-Credential-Brute-Force) | Hydra brute-force, credential reporting, host summary integration |
 
 ---
 
