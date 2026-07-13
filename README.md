@@ -9,7 +9,7 @@ The tool automates a full reconnaissance-to-exploitation workflow: host discover
 
 ---
 
-## Why I built it
+## Why I building it
 
 I wanted a project that would teach me real cybersecurity concepts hands-on, and that I could actually use in my work (where I'm authorised to test) and in my home lab. Rather than using a GUI tool like Nessus or Metasploit as a black box, I wanted to understand each phase of a pentest by building the tooling myself in bash — something I already knew — and layering in specialist tools like nmap and Hydra as I learned what they do.
 
