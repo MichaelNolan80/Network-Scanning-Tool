@@ -1,0 +1,8 @@
+network-scan/
+├── main.sh
+└── lib/
+    ├── ui.sh
+    ├── utils.sh
+    └── scan.sh
+    └── vuln
+    └── brute
