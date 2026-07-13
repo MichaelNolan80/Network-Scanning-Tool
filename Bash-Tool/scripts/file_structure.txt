@@ -3,6 +3,6 @@ network-scan/
 └── lib/
     ├── ui.sh
     ├── utils.sh
-    └── scan.sh
-    └── vuln
+    ├── scan.sh
+    ├── vuln
     └── brute
