@@ -88,10 +88,11 @@ main() {
   echo
 
   # ---- Wordlists for brute-force ---------------------------
-  local user_list pass_list _do_brute
+  local user_list pass_list _do_brute _selected_services
+  _selected_services=""
 
-  ui_phase "Brute-Force Wordlists"
-  ui_info "Common locations on Kali/Parrot:"
+  ui_phase "Brute-Force Setup"
+  ui_info "Common wordlist locations on Kali/Parrot:"
   ui_info "  Users : /usr/share/seclists/Usernames/top-usernames-shortlist.txt"
   ui_info "  Passes: /usr/share/seclists/Passwords/Common-Credentials/best110.txt"
   ui_info "  Passes: /usr/share/wordlists/rockyou.txt"
@@ -112,13 +113,78 @@ main() {
     while true; do
       read -rp "Path to password list: " pass_list
       pass_list="$(trim "$pass_list")"
-      if [[ -f "$pass_list" ]]; then
-        break
-      fi
+      [[ -f "$pass_list" ]] && break
       ui_err "File not found: ${pass_list}. Try again."
     done
     ui_ok "Username list : ${user_list}"
     ui_ok "Password list : ${pass_list}"
+    echo
+
+    # ---- Service selection ---------------------------------
+    ui_phase "Services to Brute-Force"
+    ui_info "Select which services to attack if found during the scan."
+    ui_info "Enter the numbers separated by spaces (e.g: 1 3 5), or 'all', or Enter to skip."
+    echo
+    echo "  1)  SSH        (port 22)"
+    echo "  2)  FTP        (port 21)"
+    echo "  3)  Telnet     (port 23)"
+    echo "  4)  SMB        (ports 139/445)"
+    echo "  5)  RDP        (port 3389)"
+    echo "  6)  HTTP Basic (ports 80/8080)"
+    echo "  7)  HTTPS Basic(ports 443/8443)"
+    echo "  8)  MySQL      (port 3306)"
+    echo "  9)  PostgreSQL (port 5432)"
+    echo "  10) VNC        (port 5900)"
+    echo "  11) Redis      (port 6379)"
+    echo "  12) SMTP       (port 25)"
+    echo "  13) POP3       (port 110)"
+    echo "  14) IMAP       (port 143)"
+    echo
+
+    # Map selection numbers to Hydra service names
+    declare -A _svc_map=(
+      [1]="ssh"    [2]="ftp"       [3]="telnet"  [4]="smb"
+      [5]="rdp"    [6]="http-get"  [7]="https-get" [8]="mysql"
+      [9]="postgres" [10]="vnc"    [11]="redis"  [12]="smtp"
+      [13]="pop3"  [14]="imap"
+    )
+
+    while true; do
+      read -rp "Services to attack: " _svc_input
+      _svc_input="$(trim "$_svc_input")"
+
+      if [[ -z "$_svc_input" ]]; then
+        ui_warn "No services selected — brute-force will be skipped."
+        _do_brute=false
+        break
+      fi
+
+      if [[ "$_svc_input" == "all" ]]; then
+        _selected_services="ssh ftp telnet smb rdp http-get https-get mysql postgres vnc redis smtp pop3 imap"
+        break
+      fi
+
+      # Parse space-separated numbers
+      local _valid=true _svc_list=""
+      for _num in $_svc_input; do
+        if [[ -n "${_svc_map[$_num]:-}" ]]; then
+          _svc_list="${_svc_list} ${_svc_map[$_num]}"
+        else
+          ui_err "Invalid selection: ${_num}. Enter numbers 1-14, 'all', or Enter to skip."
+          _valid=false
+          break
+        fi
+      done
+
+      if [[ "$_valid" == "true" ]]; then
+        _selected_services="$(echo "$_svc_list" | tr ' ' '\n' | sort -u | tr '\n' ' ' | trim)"
+        break
+      fi
+    done
+
+    if [[ "$_do_brute" == "true" ]]; then
+      ui_ok "Services selected: ${_selected_services}"
+    fi
   else
     ui_warn "No username list provided — brute-force phase will be skipped."
   fi
@@ -203,8 +269,9 @@ main() {
   if [[ "$_do_brute" == "true" ]]; then
     ui_banner "Brute-Force Phase"
     ui_warn "Only run this against systems you own or have written permission to test."
+    ui_info "Services: ${_selected_services}"
     echo
-    run_brute_scan "$main_folder" "$brute_dir" "$user_list" "$pass_list" </dev/null
+    run_brute_scan "$main_folder" "$brute_dir" "$user_list" "$pass_list" "$_selected_services" </dev/null
     echo
   fi
 
@@ -215,7 +282,7 @@ main() {
   [[ "$_do_brute" == "true" ]] && ui_ok "Brute reports  : ${brute_dir}"
   echo
   ui_info "View a vuln report  : cat ${vuln_dir}/<ip>_vuln.txt"
-  ui_info "View a brute report : cat ${brute_dir}/<ip>/brute_summary.txt"
+  ui_info "View a brute report : cat ${brute_dir}/brute_summary.txt"
 }
 
 main "$@"
