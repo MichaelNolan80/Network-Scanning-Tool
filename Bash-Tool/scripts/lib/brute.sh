@@ -139,21 +139,29 @@ _run_hydra_multi() {
 }
 
 # ------------------------------------------------------------
-# run_brute_scan MAIN_FOLDER BRUTE_DIR USER_LIST PASS_LIST
+# run_brute_scan MAIN_FOLDER BRUTE_DIR USER_LIST PASS_LIST SELECTED_SERVICES
 #
-# Main entry point. Iterates over each unique service that has
-# at least one IP in the port index files, and runs one Hydra
-# job per service against all relevant IPs at once.
+# Main entry point. Iterates over each service that:
+#   a) was selected by the user at startup, AND
+#   b) has at least one IP in the port index files from the scan.
+# Runs one Hydra job per qualifying service.
 # ------------------------------------------------------------
 run_brute_scan() {
   local main_folder="$1"
   local brute_dir="$2"
   local user_list="$3"
   local pass_list="$4"
+  local selected_services="$5"   # space-separated list of Hydra service names
 
   mkdir -p "$brute_dir"
 
-  # Build a unique list of services that have targets
+  # Build lookup of user-selected services for fast membership test
+  local -A selected_map=()
+  for _s in $selected_services; do
+    selected_map[$_s]=1
+  done
+
+  # Build list of services that are both selected AND have scan targets
   local -A seen_services=()
   local -a service_order=()
   local port svc port_file
@@ -162,6 +170,9 @@ run_brute_scan() {
     svc="${PORT_SERVICE_MAP[$port]}"
     port_file="${main_folder}/${port}-tcp.txt"
 
+    # Skip if user didn't select this service
+    [[ -z "${selected_map[$svc]:-}" ]] && continue
+
     if [[ -s "$port_file" && -z "${seen_services[$svc]:-}" ]]; then
       seen_services[$svc]=1
       service_order+=("$svc")
@@ -169,8 +180,8 @@ run_brute_scan() {
   done
 
   if [[ "${#service_order[@]}" -eq 0 ]]; then
-    ui_warn "No port index files found in ${main_folder}."
-    ui_warn "Run a scan first, or check the project folder path."
+    ui_warn "None of the selected services (${selected_services}) were found in the scan."
+    ui_warn "Check the project folder or broaden the service selection."
     return 0
   fi
 
@@ -199,8 +210,9 @@ run_brute_scan() {
     echo " Brute-Force Summary"
     echo " Generated : $(date -Is)"
     echo " Wordlists :"
-    echo "   Users   : ${user_list}"
+    echo "   Users    : ${user_list}"
     echo "   Passwords: ${pass_list}"
+    echo " Services  : ${selected_services}"
     echo "========================================"
     echo
   } > "$summary_file"
