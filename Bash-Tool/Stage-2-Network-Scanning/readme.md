@@ -19,6 +19,10 @@ I also wanted the output to be structured in a way that later stages could use w
 
 ## Key decisions and what I learned
 
+**Out of Scope
+
+I wanted to make sure that any IP addresses that had been identified as out of scope and are not to be part of the test would not be included. So for this after the ip addresses or ranges are given it then asks for the ip addresses to be excluded from the test. 
+
 **Adaptive timing**
 
 I didn't want to hardcode `-T4` (nmap's aggressive timing) because on slower networks or over VPN it causes false negatives — hosts that are up get missed because nmap gives up waiting too quickly. But I also didn't want to always use `-T2` because that makes scans very slow on fast local networks.
