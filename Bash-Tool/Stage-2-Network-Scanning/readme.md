@@ -19,7 +19,7 @@ I also wanted the output to be structured in a way that later stages could use w
 
 ## Key decisions and what I learned
 
-**Out of Scope
+**Out of Scope**
 
 I wanted to make sure that any IP addresses that had been identified as out of scope and are not to be part of the test would not be included. So for this after the ip addresses or ranges are given it then asks for the ip addresses to be excluded from the test. 
 
