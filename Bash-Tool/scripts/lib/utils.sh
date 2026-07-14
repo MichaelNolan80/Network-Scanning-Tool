@@ -20,7 +20,7 @@ ensure_root() {
 }
 
 trim() {
-  echo "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//'
+  echo "${1:-}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//'
 }
 
 count_nonempty_lines() {
@@ -83,4 +83,3 @@ sanitize_label() {
 safe_name() {
   echo "$1" | tr ' /' '__' | tr -cd '[:alnum:]_.-'
 }
-
