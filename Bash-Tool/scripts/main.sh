@@ -166,9 +166,10 @@ main() {
 
       # Parse space-separated numbers
       local _valid=true _svc_list=""
-      for _num in $_svc_input; do
-        if [[ -n "${_svc_map[$_num]:-}" ]]; then
-          _svc_list="${_svc_list} ${_svc_map[$_num]}"
+      for _num in ${_svc_input}; do
+        [[ -z "${_num:-}" ]] && continue
+        if [[ -n "${_svc_map[${_num}]:-}" ]]; then
+          _svc_list="${_svc_list} ${_svc_map[${_num}]}"
         else
           ui_err "Invalid selection: ${_num}. Enter numbers 1-14, 'all', or Enter to skip."
           _valid=false
