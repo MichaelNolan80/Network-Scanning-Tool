@@ -10,11 +10,10 @@ I also wanted to think carefully about efficiency. Brute-forcing is slow by natu
 
 **`lib/brute.sh`** — Hydra orchestration using port index files:
 
-- `_port_to_service` — maps a port number to the Hydra service name (e.g. 22 → ssh, 445 → smb)
 - `_collect_targets_for_service` — reads all port index files for a given service and merges their IPs into a deduplicated temp file
 - `_run_hydra_multi` — runs Hydra in multi-target mode (`-M`) against the combined IP list for a service
-- `run_brute_scan` — iterates over every service that has at least one target and runs one Hydra job per service
-- `append_brute_to_summaries` — after brute-forcing completes, finds any credentials that were discovered and appends them to the relevant host's `summary.txt`
+- `run_brute_scan` — accepts a list of user-selected services, finds which of those are present in the scan results, and runs one Hydra job per qualifying service
+- `append_brute_to_summaries` — after brute-forcing completes, finds any credentials discovered and appends them to the relevant host's `summary.txt`
 
 ## Supported services
 
@@ -49,16 +48,33 @@ Hydra's found-credential lines contain the host IP:
 
 `append_brute_to_summaries` reads every `*_found.txt` file, extracts the IP from each credential line, finds that host's `summary.txt` in the folder structure, and appends the credentials under a new section. I tested this with a simulated Hydra output file before running it for real, to make sure the parsing was correct.
 
-**Asking for wordlists at the start**
+**Asking for wordlists and service selection at the start**
 
-Originally the brute-force wordlist prompts came at the end of the setup section, just before scanning started. That meant the tool asked for:
+Originally the brute-force setup came at the end of the input section, and the tool would automatically attack every service it found in the scan. That's a problem for two reasons: first, it's noisy — hammering every open port on every host is exactly the kind of behaviour that triggers IDS alerts and account lockouts. Second, it's presumptuous — just because a service is running doesn't mean you want to attack it. SMB brute-forcing on a domain controller behaves very differently from SSH on a Linux box.
+
+I moved all the setup to the beginning so the user makes deliberate choices before anything starts:
+
 1. Project name
-2. Targets
-3. Excludes
-4. NVD API key
-5. Wordlists (much later)
+2. NVD API key
+3. Username list path
+4. Password list path
+5. **Which specific services to attack** (numbered menu, multi-select)
+6. Target ranges
+7. Exclude list
 
-I moved the wordlists prompt to the beginning, right after the project name, so all user inputs are collected upfront before any scanning starts. That way you set everything at the start and then walk away — you don't have to come back later to answer more questions.
+The service selection shows a numbered menu of every service the tool supports:
+
+```
+  1)  SSH        (port 22)
+  2)  FTP        (port 21)
+  3)  Telnet     (port 23)
+  4)  SMB        (ports 139/445)
+  ...
+```
+
+You type the numbers you want (e.g. `1 4` for SSH and SMB only), or `all` to attack everything found, or press Enter to skip brute-forcing entirely. `run_brute_scan` then receives the selected service list and ignores anything not on it, even if those services were found in the scan.
+
+This means the selection is intentional and recorded — the `brute_summary.txt` header logs exactly which services were chosen for that run.
 
 **Skipping brute-force gracefully**
 
