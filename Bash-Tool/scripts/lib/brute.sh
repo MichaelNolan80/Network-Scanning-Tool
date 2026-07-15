@@ -151,17 +151,14 @@ run_brute_scan() {
   local brute_dir="$2"
   local user_list="$3"
   local pass_list="$4"
-  local selected_services="$5"   # space-separated list of Hydra service names
+  local selected_services="${5:-}"  # space-separated list of Hydra service names
 
   mkdir -p "$brute_dir"
 
-  # Build lookup of user-selected services for fast membership test
-  local -A selected_map=()
-  for _s in $selected_services; do
-    selected_map[$_s]=1
-  done
-
-  # Build list of services that are both selected AND have scan targets
+  # Build list of services that are both selected AND have scan targets.
+  # We use a grep word-match to check membership rather than an associative
+  # array — local -A lookup of non-existent keys trips set -u on some bash
+  # versions even with the :- fallback.
   local -A seen_services=()
   local -a service_order=()
   local port svc port_file
@@ -171,7 +168,7 @@ run_brute_scan() {
     port_file="${main_folder}/${port}-tcp.txt"
 
     # Skip if user didn't select this service
-    [[ -z "${selected_map[$svc]:-}" ]] && continue
+    echo " ${selected_services} " | grep -qw "$svc" || continue
 
     if [[ -s "$port_file" && -z "${seen_services[$svc]:-}" ]]; then
       seen_services[$svc]=1
