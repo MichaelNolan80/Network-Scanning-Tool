@@ -141,17 +141,23 @@ main() {
     echo "  14) IMAP       (port 143)"
     echo
 
-    # Map selection numbers to Hydra service names
-    declare -A _svc_map=(
-      [1]="ssh"    [2]="ftp"       [3]="telnet"  [4]="smb"
-      [5]="rdp"    [6]="http-get"  [7]="https-get" [8]="mysql"
-      [9]="postgres" [10]="vnc"    [11]="redis"  [12]="smtp"
-      [13]="pop3"  [14]="imap"
-    )
+    # Helper: map selection number to Hydra service name
+    _num_to_svc() {
+      case "$1" in
+        1)  echo "ssh" ;;       2)  echo "ftp" ;;
+        3)  echo "telnet" ;;    4)  echo "smb" ;;
+        5)  echo "rdp" ;;       6)  echo "http-get" ;;
+        7)  echo "https-get" ;; 8)  echo "mysql" ;;
+        9)  echo "postgres" ;;  10) echo "vnc" ;;
+        11) echo "redis" ;;     12) echo "smtp" ;;
+        13) echo "pop3" ;;      14) echo "imap" ;;
+        *)  echo "" ;;
+      esac
+    }
 
     while true; do
       read -rp "Services to attack: " _svc_input
-      _svc_input="$(trim "$_svc_input")"
+      _svc_input="$(trim "${_svc_input:-}")"
 
       if [[ -z "$_svc_input" ]]; then
         ui_warn "No services selected — brute-force will be skipped."
@@ -164,26 +170,28 @@ main() {
         break
       fi
 
-      # Parse space-separated numbers
-      local _valid=true _svc_list=""
-      for _num in ${_svc_input}; do
+      # Parse space-separated numbers into service names
+      local _valid=true _svc_list="" _svc_name _num
+      for _num in $_svc_input; do
         [[ -z "${_num:-}" ]] && continue
-        if [[ -n "${_svc_map[${_num}]:-}" ]]; then
-          _svc_list="${_svc_list} ${_svc_map[${_num}]}"
+        _svc_name="$(_num_to_svc "$_num")"
+        if [[ -n "$_svc_name" ]]; then
+          _svc_list="$_svc_list $_svc_name"
         else
-          ui_err "Invalid selection: ${_num}. Enter numbers 1-14, 'all', or Enter to skip."
+          ui_err "Invalid number: ${_num}. Enter numbers 1-14, 'all', or press Enter to skip."
           _valid=false
           break
         fi
       done
 
-      if [[ "$_valid" == "true" ]]; then
-        _selected_services="$(echo "$_svc_list" | tr ' ' '\n' | sort -u | tr '\n' ' ' | trim)"
+      if [[ "$_valid" == "true" && -n "${_svc_list:-}" ]]; then
+        # Trim leading space and deduplicate
+        _selected_services="${_svc_list# }"
         break
       fi
     done
 
-    if [[ "$_do_brute" == "true" ]]; then
+    if [[ "$_do_brute" == "true" && -n "${_selected_services:-}" ]]; then
       ui_ok "Services selected: ${_selected_services}"
     fi
   else
