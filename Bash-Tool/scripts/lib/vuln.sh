@@ -251,6 +251,11 @@ run_vuln_scan() {
     if [[ -z "$services" ]]; then
       echo "No versioned services detected. Nothing to look up."
       echo
+      echo "--- Raw open port lines from tcp_scan.txt ---"
+      grep -E '^[0-9]+\/tcp[[:space:]]+open' "$tcp_scan" 2>/dev/null \
+        || echo "(no open TCP lines found in scan file)"
+      echo "---------------------------------------------"
+      echo
       echo "Tip: Ensure nmap was run with -sV (version detection)."
       return 0
     fi
