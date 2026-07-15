@@ -56,35 +56,43 @@ parse_services_from_nmap() {
   # 80/tcp   open  http    Apache httpd 2.4.52 ((Ubuntu))
   # 443/tcp  open  ssl     nginx 1.18.0
   #
-  # Field layout (awk):
-  #   $1 = port/proto   $2 = state   $3 = service   $4+ = product+version
+  # Lines where nmap couldn't identify the service look like:
+  # 8080/tcp open  http-proxy syn-ack 64
+  # 9090/tcp open  unknown    tcpwrapped
+  # These are NOT real services and must be skipped.
 
   awk '
     /^[0-9]+\/tcp[[:space:]]+open/ {
-      # Build the version string from field 4 onward
       ver = ""
       for (i = 4; i <= NF; i++) ver = ver " " $i
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", ver)
 
-      # Skip empty or generic strings
-      if (ver == "" || ver == "?" ) next
+      # Skip empty, unknown, or nmap probe-response tokens
+      if (ver == "" || ver == "?") next
+      if (ver ~ /^syn-ack/)        next
+      if (ver ~ /^tcpwrapped/)     next
+      if (ver ~ /^filtered/)       next
+      if (ver ~ /^unknown/)        next
 
-      # Extract product (first word) and version (second word if looks like x.y...)
       n = split(ver, parts, " ")
       product = parts[1]
-      version = ""
 
+      # Skip if product itself is a known non-service token
+      if (product == "syn-ack" || product == "tcpwrapped" || \
+          product == "filtered" || product == "unknown") next
+
+      version = ""
       for (j = 2; j <= n; j++) {
-        if (parts[j] ~ /^[0-9]/) {
+        if (parts[j] ~ /^[0-9][0-9a-z]*\./) {
           version = parts[j]
-          # Strip trailing non-version noise: (Ubuntu), ((Debian)), etc.
           gsub(/[^0-9.].*$/, "", version)
           break
         }
       }
 
-      # Only emit if we have both product and a version number
-      if (product != "" && version ~ /^[0-9]/) {
+      # Must have product AND a dotted version number (e.g. 8.9, 2.4.52)
+      # A bare integer like "64" is NOT a version — reject it
+      if (product != "" && version ~ /^[0-9]+\.[0-9]/) {
         print product "\t" version
       }
     }
@@ -153,29 +161,41 @@ nvd_lookup() {
   fi
 
   # Parse JSON with awk (no jq dependency)
-  # Extract: CVE ID, severity, score, description
+  # Uses portable awk — avoids the 3-argument match() which is gawk-only
+  # and causes "syntax error at or near ," on mawk/nawk systems.
   local parsed
   parsed="$(echo "$body" | awk '
     BEGIN { id=""; score=""; severity=""; desc=""; in_desc=0 }
 
-    /"cveId"[[:space:]]*:/ {
-      match($0, /"cveId"[[:space:]]*:[[:space:]]*"([^"]+)"/, a)
-      if (a[1] != "") id = a[1]
+    /"cveId"/ {
+      line = $0
+      sub(/.*"cveId"[[:space:]]*:[[:space:]]*"/, "", line)
+      sub(/".*/, "", line)
+      if (line != "" && line != $0) id = line
     }
 
-    /"baseSeverity"[[:space:]]*:/ {
-      match($0, /"baseSeverity"[[:space:]]*:[[:space:]]*"([^"]+)"/, a)
-      if (a[1] != "" && severity == "") severity = a[1]
+    /"baseSeverity"/ {
+      line = $0
+      sub(/.*"baseSeverity"[[:space:]]*:[[:space:]]*"/, "", line)
+      sub(/".*/, "", line)
+      if (line != "" && line != $0) severity = line
     }
 
-    /"baseScore"[[:space:]]*:/ {
-      match($0, /"baseScore"[[:space:]]*:[[:space:]]*([0-9.]+)/, a)
-      if (a[1] != "" && score == "") score = a[1]
+    /"baseScore"/ {
+      line = $0
+      sub(/.*"baseScore"[[:space:]]*:[[:space:]]*/, "", line)
+      sub(/[^0-9.].*/, "", line)
+      if (line ~ /^[0-9]/) score = line
     }
 
-    /"value"[[:space:]]*:/ && in_desc == 0 {
-      match($0, /"value"[[:space:]]*:[[:space:]]*"([^"]+)"/, a)
-      if (a[1] != "") { desc = substr(a[1], 1, 120); in_desc = 1 }
+    /"value"/ && in_desc == 0 {
+      line = $0
+      sub(/.*"value"[[:space:]]*:[[:space:]]*"/, "", line)
+      sub(/".*/, "", line)
+      if (line != "" && line != $0) {
+        desc = substr(line, 1, 120)
+        in_desc = 1
+      }
     }
 
     /"weaknesses"/ {
@@ -270,4 +290,3 @@ run_vuln_scan() {
 export -f run_vuln_scan
 export -f parse_services_from_nmap
 export -f nvd_lookup
-
