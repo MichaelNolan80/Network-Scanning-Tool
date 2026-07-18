@@ -1,4 +1,4 @@
-# Network-Scanning-Tool - Without Keys
+# Network-Scanning-Tool
 This is my network scanning tool project that im calling Without-Keys.
 
 # Without Keys
