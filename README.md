@@ -64,6 +64,7 @@ I built this incrementally, solving real problems as they came up. Each stage fo
 | [Stage-2-scanning](Bash-Tool/Stage-2-Network-Scanning/readme.md) | Host discovery, TCP + OS scanning, port index files |
 | [Stage-3-vulnerability](Bash-Tool/Stage-3-Vulnerability-Lookup/readme.md) | NVD API integration, CVE reporting |
 | [Stage-4-bruteforce](Bash-Tool/Stage-4-Credential-Brute-Force/readme.md) | Hydra brute-force, credential reporting, host summary integration |
+| [Without Keys - Scripts for this project](https://github.com/MichaelNolan80/Network-Scanning-Tool/tree/main/Bash-Tool/scripts/main.md) | All the code |
 
 ---
 
