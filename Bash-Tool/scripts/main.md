@@ -10,8 +10,8 @@ Here are the code for the program-
 | File | Description |
 |---|---|
 | [`main.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/main.sh) | Orchestrator — collects input, drives the workflow |
-| `lib/ui.sh` | Terminal output, banners, formatting |
-| `lib/utils.sh` | Shared helpers, safe concurrent file writes (`flock`) |
-| `lib/scan.sh` | `nmap`-based host discovery and service fingerprinting |
-| `lib/vuln.sh` | NVD API v2 CVE lookups |
-| `lib/brute.sh` | Hydra-based credential brute-forcing |
+| [`lib/ui.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/lib/ui.sh) | Terminal output, banners, formatting |
+| [`lib/utils.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/lib/utils.sh) | Shared helpers, safe concurrent file writes (`flock`) |
+| [`lib/scan.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/lib/scan.sh) | `nmap`-based host discovery and service fingerprinting |
+| [`lib/vuln.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/lib/vuln.sh) | NVD API v2 CVE lookups |
+| [`lib/brute.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/lib/brute.sh) | Hydra-based credential brute-forcing |
