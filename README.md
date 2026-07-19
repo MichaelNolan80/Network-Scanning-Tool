@@ -9,9 +9,9 @@ The tool automates a full reconnaissance-to-exploitation workflow: host discover
 
 ---
 
-## Why I building it
+## Why I'm building it
 
-I wanted a project that would teach me real cybersecurity concepts hands-on, and that I could actually use in my work (where I'm authorised to test) and in my home lab. Rather than using a GUI tool like Nessus or Metasploit as a black box, I wanted to understand each phase of a pentest by building the tooling myself in bash — something I already knew — and layering in specialist tools like nmap and Hydra as I learned what they do.
+I wanted to build a tool that automates the pentesting skills I was learning, so I could kick it off and come back to results — rather than running each step manually every time. It's built in bash and brings together nmap for scanning, Hydra for credential brute-forcing, and the NVD API for vulnerability lookups, with things like awk and flock handling the data parsing and safe concurrent writes under the hood. I don't come from a programming background, so I used Claude AI to help close the gaps in my coding knowledge along the way. It took a lot of iteration to get here, and what you're looking at is the first edition of the project.
 
 ---
 
