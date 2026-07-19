@@ -15,3 +15,14 @@ Here are the code for the program-
 | [`lib/scan.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/lib/scan.sh) | `nmap`-based host discovery and service fingerprinting |
 | [`lib/vuln.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/lib/vuln.sh) | NVD API v2 CVE lookups |
 | [`lib/brute.sh`](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/scripts/lib/brute.sh) | Hydra-based credential brute-forcing |
+
+
+---
+| Page Jumper | What I built |
+|---|---|
+| [Penetration Tool Creation – Without Keys ](https://github.com/MichaelNolan80/Network-Scanning-Tool) | Custom tool development for penetration testing |
+| [Without Keys - Stage-1-foundation](https://github.com/MichaelNolan80/Network-Scanning-Tool/tree/main/Bash-Tool/Stage-1-foundation) | Project scaffold, UI module, shared utilities |
+| [Without Keys - Stage-2-scanning](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/Stage-2-Network-Scanning/readme.md) | Host discovery, TCP + OS scanning, port index files |
+| [Without Keys - Stage-3-vulnerability](https://github.com/MichaelNolan80/Network-Scanning-Tool/tree/main/Bash-Tool/Stage-3-Vulnerability-Lookup) | NVD API integration, CVE reporting |
+| [Without Keys - Stage-4-bruteforce](https://github.com/MichaelNolan80/Network-Scanning-Tool/tree/main/Bash-Tool/Stage-4-Credential-Brute-Force) | Hydra brute-force, credential reporting, host summary integration |
+| [Back to the home page](https://github.com/MichaelNolan80/MichaelNolan80) | Home page |
