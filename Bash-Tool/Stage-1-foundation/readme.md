@@ -58,5 +58,5 @@ append_unique_locked() {
 | Stage | What I built |
 |---|---|
 | [Penetration Tool Creation – Without Keys ](https://github.com/MichaelNolan80/Network-Scanning-Tool) | Custom tool development for penetration testing |
-| [Stage-2-scanning](Bash-Tool/Stage-2-Network-Scanning/readme.md) | Host discovery, TCP + OS scanning, port index files |
+| [Stage-2-scanning](https://github.com/MichaelNolan80/Network-Scanning-Tool/blob/main/Bash-Tool/Stage-2-Network-Scanning/readme.md) | Host discovery, TCP + OS scanning, port index files |
 | [Back to the home page](https://github.com/MichaelNolan80/MichaelNolan80) | Home page |
