@@ -101,3 +101,13 @@ And in each host's summary:
 - Add a delay/jitter between attempts to avoid account lockouts on services that have lockout policies
 - Add a check for whether a service is actually accepting connections before launching a full brute-force (a quick banner grab)
 - Let the user configure `BRUTE_TASKS` and `BRUTE_TIMEOUT` interactively rather than just via environment variables
+
+
+
+
+| Page Jumper | What I built |
+|---|---|
+| [Penetration Tool Creation – Without Keys ](https://github.com/MichaelNolan80/Network-Scanning-Tool) | Custom tool development for penetration testing |
+| [Without Keys - Stage-3-vulnerability](https://github.com/MichaelNolan80/Network-Scanning-Tool/tree/main/Bash-Tool/Stage-3-Vulnerability-Lookup) | NVD API integration, CVE reporting |
+| [Without Keys - Scripts for this project](https://github.com/MichaelNolan80/Network-Scanning-Tool/tree/main/Bash-Tool/scripts) | All the code |
+| [Back to the home page](https://github.com/MichaelNolan80/MichaelNolan80) | Home page |
