@@ -4,14 +4,8 @@ Here are the code for the program-
 
 <img width="907" height="415" alt="image" src="https://github.com/user-attachments/assets/dc808e9b-86fc-46bb-9466-a3eb25e943b6" />
 
-<network-scan/ />
-├── main.sh
-└── lib/
-    ├── ui.sh
-    ├── utils.sh
-    ├── scan.sh
-    ├── vuln
-    └── brute
+<img width="138" height="166" alt="image" src="https://github.com/user-attachments/assets/f425af06-11ae-4a3d-ac86-be4cd07b95df" />
+
 
 | File | Description |
 |---|---|
