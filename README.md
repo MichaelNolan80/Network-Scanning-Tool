@@ -84,3 +84,13 @@ sudo -E ./main.sh
 ## Legal notice
 
 This tool is for use only on networks and systems you own or have **explicit written authorisation** to test. Unauthorised use against third-party systems is illegal under the Computer Misuse Act (UK) and equivalent legislation elsewhere.
+
+
+| Stage | What I built |
+|---|---|
+| [Stage-1-foundation](Bash-Tool/Stage-1-foundation/readme.md) | Project scaffold, UI module, shared utilities |
+| [Back to the home page](MichaelNolan80/readme.md) | Home page |
+| [Stage-3-vulnerability](Bash-Tool/Stage-3-Vulnerability-Lookup/readme.md) | NVD API integration, CVE reporting |
+| [Stage-4-bruteforce](Bash-Tool/Stage-4-Credential-Brute-Force/readme.md) | Hydra brute-force, credential reporting, host summary integration |
+
+---
