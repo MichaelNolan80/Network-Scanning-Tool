@@ -8,6 +8,16 @@ A bash-based network scanning and penetration testing toolkit I built from scrat
 The tool automates a full reconnaissance-to-exploitation workflow: host discovery, service fingerprinting, OS detection, CVE lookup against the National Vulnerability Database, and credential brute-forcing. It's designed for use in **authorised environments and personal home labs only**.
 
 ---
+## Changelog
+
+
+| Date | Stage | Change |
+|---|---|---|
+| July 2026 | Stage 4 | Two-phase brute-force — default credentials attempted before wordlist attack |
+| June 2026 | Stage 4 | Credential brute-forcing via Hydra using port index files |
+| June 2026 | Stage 3 | NVD API v2 CVE lookup per detected service/version |
+| June 2026 | Stage 2 | Network scanning — host discovery, TCP version scan, OS detection |
+| June 2026 | Stage 1 | Project foundation — modular structure, UI, shared utilities |
 
 ## Why I'm building it
 
