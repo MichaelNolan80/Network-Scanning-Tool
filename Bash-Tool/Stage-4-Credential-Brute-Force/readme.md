@@ -8,8 +8,7 @@
 | June 2026 | Credential brute-forcing via Hydra using port index files |
 | June 2026 | Initial build — Hydra multi-target brute-force |
 
-## What I was trying to do
-...
+---
 
 ## What I was trying to do
 
