@@ -5,7 +5,8 @@
 | Date | Change |
 |---|---|
 | July 2026 | Added two-phase brute-force — Phase 1 tries hardcoded default credentials per service before falling back to wordlist attack |
-| June 2026 | Initial build — Hydra multi-target brute-force using port index files |
+| June 2026 | Credential brute-forcing via Hydra using port index files |
+| June 2026 | Initial build — Hydra multi-target brute-force |
 
 ## What I was trying to do
 ...
