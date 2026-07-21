@@ -10,14 +10,16 @@ I also wanted to think carefully about efficiency. Brute-forcing is slow by natu
 
 **`lib/brute.sh`** — Hydra orchestration using port index files:
 
-- `_collect_targets_for_service` — reads all port index files for a given service and merges their IPs into a deduplicated temp file
-- `_run_hydra_multi` — runs Hydra in multi-target mode (`-M`) against the combined IP list for a service
-- `run_brute_scan` — accepts a list of user-selected services, finds which of those are present in the scan results, and runs one Hydra job per qualifying service
-- `append_brute_to_summaries` — after brute-forcing completes, finds any credentials discovered and appends them to the relevant host's `summary.txt`
+- `_default_creds_for_service` — returns hardcoded default credentials for a given service
+- `_collect_targets_for_service` — reads all port index files for a service and merges their IPs into a deduplicated temp file
+- `_run_hydra_defaults` — Phase 1: runs Hydra with `-C` against the hardcoded default credential list
+- `_run_hydra_wordlist` — Phase 2: runs Hydra with `-L`/`-P` against user-supplied wordlists
+- `run_brute_scan` — orchestrates both phases per service, records results in the summary
+- `append_brute_to_summaries` — after brute-forcing completes, appends any found credentials to each host's `summary.txt`
 
 ## Supported services
 
-SSH, FTP, Telnet, SMB (139 + 445), RDP, HTTP/HTTPS Basic Auth, MySQL, PostgreSQL, VNC, Redis.
+SSH, FTP, Telnet, SMB (139 + 445), RDP, HTTP/HTTPS Basic Auth, MySQL, PostgreSQL, VNC, Redis, SMTP, POP3, IMAP.
 
 ## Key decisions and what I learned
 
@@ -37,6 +39,35 @@ That's one wordlist load, one process, all targets handled in parallel internall
 
 This architectural decision — building the index files during scanning specifically so brute-forcing can use them — was something I worked out before writing any of the brute-force code. Getting the data structure right upfront made the implementation much simpler.
 
+**Adding a default credentials phase**
+
+After getting the wordlist attack working I started thinking about the order of operations. In real environments, a surprising number of devices still have factory default credentials — routers, network switches, IoT devices, database servers installed with default accounts. Running a full wordlist against those is overkill and slow when `admin:admin` would have worked in the first attempt.
+
+So I added a two-phase approach:
+
+- **Phase 1** always runs first, regardless of whether wordlists are provided. It tries a hardcoded set of well-known default credentials for each service using Hydra's `-C` flag, which accepts `username:password` pairs directly from a file. This is fast — typically done in seconds — and catches the low-hanging fruit immediately.
+- **Phase 2** runs after if wordlists were provided. This is the full `-L`/`-P` brute-force for anything that didn't fall to defaults.
+
+The credentials are hardcoded directly into `brute.sh` as a `case` statement in `_default_creds_for_service`, one block per service. I chose hardcoding over an external file because it keeps the tool completely self-contained — there are no extra files to manage, lose, or forget to include, and the defaults aren't going to change. Separating data from code made sense for user wordlists (which change every run) but not for a fixed reference list.
+
+The credential sets are sourced from vendor documentation, publicly disclosed CVEs, and widely-published default credential databases. For example:
+- SSH includes `pi:raspberry` (Raspberry Pi), `ubnt:ubnt` (Ubiquiti), `root:alpine` (Alpine Linux)
+- Telnet includes `cisco:cisco` and `enable:enable` (Cisco IOS)
+- MySQL includes a blank root password and `debian-sys-maint` (Debian/Ubuntu default installer accounts)
+- Redis uses a blank password by default in older versions, so the first entry is `:`
+
+The result is that Phase 1 covers the "should never have been deployed this way" category, and Phase 2 covers everything else. The `brute_summary.txt` reports both phases separately so it's clear which phase found anything.
+
+**Letting the user choose which services to attack**
+
+An earlier version attacked every service found in the scan automatically. I changed this to a numbered menu at startup where the user picks which services to target. The reasons:
+
+- Brute-forcing every service indiscriminately is noisy and risks triggering account lockouts, especially on SMB and RDP which often have domain lockout policies
+- In an authorised test you often have a specific scope — you might be testing SSH hardening but not want to touch the database
+- It makes the tool more deliberate and professional
+
+The selection is recorded in `brute_summary.txt` so there's a clear record of exactly what was tested in each run.
+
 **Writing credentials back to host summaries**
 
 After brute-forcing completes, I wanted the findings to appear in each host's `summary.txt` alongside the scan and CVE data — so there's one place to look for everything about a host, rather than having to cross-reference multiple output files.
@@ -46,54 +77,41 @@ Hydra's found-credential lines contain the host IP:
 [22][ssh] host: 10.0.0.5   login: admin   password: password123
 ```
 
-`append_brute_to_summaries` reads every `*_found.txt` file, extracts the IP from each credential line, finds that host's `summary.txt` in the folder structure, and appends the credentials under a new section. I tested this with a simulated Hydra output file before running it for real, to make sure the parsing was correct.
+`append_brute_to_summaries` reads every `*_found.txt` file, extracts the IP from each credential line, finds that host's `summary.txt` in the folder structure, and appends the credentials under a new section.
 
 **Asking for wordlists and service selection at the start**
 
-Originally the brute-force setup came at the end of the input section, and the tool would automatically attack every service it found in the scan. That's a problem for two reasons: first, it's noisy — hammering every open port on every host is exactly the kind of behaviour that triggers IDS alerts and account lockouts. Second, it's presumptuous — just because a service is running doesn't mean you want to attack it. SMB brute-forcing on a domain controller behaves very differently from SSH on a Linux box.
-
-I moved all the setup to the beginning so the user makes deliberate choices before anything starts:
-
-1. Project name
-2. NVD API key
-3. Username list path
-4. Password list path
-5. **Which specific services to attack** (numbered menu, multi-select)
-6. Target ranges
-7. Exclude list
-
-The service selection shows a numbered menu of every service the tool supports:
-
-```
-  1)  SSH        (port 22)
-  2)  FTP        (port 21)
-  3)  Telnet     (port 23)
-  4)  SMB        (ports 139/445)
-  ...
-```
-
-You type the numbers you want (e.g. `1 4` for SSH and SMB only), or `all` to attack everything found, or press Enter to skip brute-forcing entirely. `run_brute_scan` then receives the selected service list and ignores anything not on it, even if those services were found in the scan.
-
-This means the selection is intentional and recorded — the `brute_summary.txt` header logs exactly which services were chosen for that run.
-
-**Skipping brute-force gracefully**
-
-If you press Enter when asked for a username list, the brute-force phase is skipped entirely. The scanning and CVE lookup still run normally. This means the tool is still useful for reconnaissance-only runs without having to comment anything out or use flags.
+All user inputs — project name, NVD API key, wordlist paths, and service selection — are collected upfront before any scanning begins. Phase 1 (default credentials) runs even if no wordlists are provided, so the tool is still useful for a quick default-credential sweep without needing wordlists ready.
 
 ## Output
 
 ```
 Brute/
-├── brute_summary.txt          ← all services, targets, and results
-├── ssh_found.txt              ← raw Hydra output for SSH
-└── smb_found.txt              ← raw Hydra output for SMB
+├── brute_summary.txt              ← both phases, all services, all results
+├── ssh_defaults_found.txt         ← Phase 1 Hydra output for SSH
+├── ssh_wordlist_found.txt         ← Phase 2 Hydra output for SSH
+└── smb_defaults_found.txt         ← Phase 1 Hydra output for SMB
 ```
 
-And in each host's summary:
+The summary clearly distinguishes what each phase found:
+
+```
+--- ssh (port 22) ---
+Targets : 4
+
+  [ Phase 1 — Default Credentials ]
+  Status : FOUND
+  [22][ssh] host: 10.0.0.5   login: pi   password: raspberry
+
+  [ Phase 2 — Wordlist ]
+  Status : Nothing found
+```
+
+And in each host's `summary.txt`:
 
 ```
 === Brute-Force Credentials Found ===
-[22][ssh] host: 10.0.0.5   login: admin   password: password123
+[22][ssh] host: 10.0.0.5   login: pi   password: raspberry
 ```
 
 ## Things to think about for stage 5
@@ -101,7 +119,6 @@ And in each host's summary:
 - Add a delay/jitter between attempts to avoid account lockouts on services that have lockout policies
 - Add a check for whether a service is actually accepting connections before launching a full brute-force (a quick banner grab)
 - Let the user configure `BRUTE_TASKS` and `BRUTE_TIMEOUT` interactively rather than just via environment variables
-
 
 ---
 
