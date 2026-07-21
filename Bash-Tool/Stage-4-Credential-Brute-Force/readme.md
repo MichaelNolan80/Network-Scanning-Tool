@@ -1,5 +1,15 @@
 # Stage 4 — Credential Brute-Force
 
+## Changelog
+
+| Date | Change |
+|---|---|
+| July 2026 | Added two-phase brute-force — Phase 1 tries hardcoded default credentials per service before falling back to wordlist attack |
+| June 2026 | Initial build — Hydra multi-target brute-force using port index files |
+
+## What I was trying to do
+...
+
 ## What I was trying to do
 
 The scanning and CVE lookup phases tell me what's running and whether it's known to be vulnerable. The brute-force phase goes one step further and tests whether any of those services have weak credentials. I wanted this to be automatic — read the scan output, figure out what services are running where, and attack them — rather than manually specifying targets each time.
